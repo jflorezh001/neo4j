@@ -1,0 +1,26 @@
+{{ if .Values.ssl.enabled }}
+apiVersion:  certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: neo4j-cert
+  namespace: {{ .Release.Namespace | quote }}
+labels:
+  app: {{ template "neo4j.name" . }}
+  #chart: neo4j-4.1.3-1
+  chart: neo4j-4.2.3
+  release: {{ .Release.Name }}
+  heritage: {{ .Release.Service }}
+spec:
+  secretName: {{ template "neo4j.name" . }}-cert
+  issuerRef:
+    name: ca
+    kind: ClusterIssuer
+  commonName: neo4j
+  dnsNames:
+    - neo4j
+    - neo4j.{{ .Release.Namespace }}
+    - neo4j.{{ .Release.Namespace }}.svc.cluster.local
+    - neo4j-headless
+    - neo4j-headless.{{ .Release.Namespace }}
+    - neo4j-headless.{{ .Release.Namespace }}.svc.cluster.local
+  {{- end }}

@@ -1,0 +1,11 @@
+{{ if .Values.ssl.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "neo4j.name" . }}-ssl-config
+data:
+  NEO4J_dbms_ssl_policy_bolt_enabled: "true"
+  NEO4J_dbms_connector_bolt_tls__level: "REQUIRED"
+  NEO4J_dbms_connector_http_enabled: "false"
+  NEO4J_dbms_ssl_policy_bolt_verify__hostname: "true"
+  {{- end }}

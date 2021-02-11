@@ -1,0 +1,11 @@
+volumes:
+   - name: cert
+     secret:
+        secretName: app-cert
+   - name: ca
+     secret:
+        secretName: ca-cert
+containers: 
+   volumeMounts: 
+   - name: ca
+     mountPath: "/certs/ca"

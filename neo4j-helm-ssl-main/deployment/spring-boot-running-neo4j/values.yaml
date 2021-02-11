@@ -1,0 +1,86 @@
+# Default values for spring-boot-running-neo4j.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+  
+replicaCount: 1
+
+#image:
+#  repository: spring-boot-running-neo4j-image
+#  #repository: spring-boot-running-neo4j
+#  tag: stable
+#  pullPolicy: IfNotPresent
+
+ssl:
+  enabled: true
+  
+Certificate: neo4j-certificate
+
+neo4j:
+  image: "neo4j"
+  name: "neo4j"
+  service:
+    type: LoadBalancer #ClusterIP
+  imageTag: "4.2.3"
+  username: neo4j
+  neo4jPassword: "1234" # if not provided neo4jSecrets will generate one during deployment
+  # Cores.
+  core:
+    numberOfServers: 1
+    # Init containers to run before the Neo4j core pod.
+    initContainers:
+      - name: manage-certificates
+        image: "busybox"
+        imagePullPolicy: "IfNotPresent"
+        volumeMounts:
+          - name: ca
+            mountPath: "/etc/x509/ca"
+          - name: cert
+            mountPath: "/etc/x509/cert"
+          - name: bolt
+            mountPath: "/var/lib/neo4j/certificates/bolt"
+          - name: trusted
+            mountPath: "/var/lib/neo4j/certificates/bolt/trusted"
+          - name: revoked
+            mountPath: "/var/lib/neo4j/certificates/bolt/revoked"
+
+        command:
+          - "/bin/sh"
+          - "-c"
+          - |
+
+            # Copy cerficates to folders according to protocol of communication
+            cp /etc/x509/ca/ca.crt /var/lib/neo4j/certificates/bolt/trusted/ca.crt
+            cp /etc/x509/cert/tls.key /var/lib/neo4j/certificates/bolt/private.key
+            cp /etc/x509/cert/tls.crt /var/lib/neo4j/certificates/bolt/public.crt
+
+            chown 1000 /var/lib/neo4j/certificates/bolt/*
+            chmod 0600 /var/lib/neo4j/certificates/bolt/*
+
+    additionalVolumes:
+      - name: ca
+        secret:
+          secretName: ca-cert
+      - name: cert
+        secret:
+          secretName: neo4j-cert
+      - name: bolt
+        mountPath: "/var/lib/neo4j/certificates/bolt"
+      - name: trusted
+        mountPath: "/var/lib/neo4j/certificates/bolt/trusted"
+      - name: revoked
+        mountPath: "/var/lib/neo4j/certificates/bolt/revoked"
+
+    additionalVolumeMounts:
+      - name: ca
+        mountPath: "/etc/x509/ca"
+      - name: cert
+        mountPath: "/etc/x509/cert"
+      - name: bolt
+        mountPath: "/var/lib/neo4j/certificates/bolt"
+      - name: trusted
+        mountPath: "/var/lib/neo4j/certificates/bolt/trusted"
+      - name: revoked
+        mountPath: "/var/lib/neo4j/certificates/bolt/revoked"
+
+    configMap: neo4j-ssl-config

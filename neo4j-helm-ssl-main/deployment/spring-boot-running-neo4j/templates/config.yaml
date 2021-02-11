@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: {{ include "spring-boot-running-neo4j.fullname" . }}-config
+    namespace: {{ .Release.Namespace | quote }}
+data:
+    application.properties: |-
+        spring.data.neo4j.uri={{ include "spring-boot-running-neo4j-connection.url" . }}
+        spring.data.neo4j.username={{ .Values.neo4j.username }}
+        spring.data.neo4j.password={{ .Values.neo4j.neo4jPassword }}
+        {{- if .Values.ssl.enabled }}
+        org.neo4j.driver.config.encrypted=true
+        {{- end }}
